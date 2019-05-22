@@ -26,7 +26,7 @@ var dayStyle = {
 
 tasksArray = sort(tasksArray);
 getTasksLength();
-taskArray = actualySortArray(tasksArray);
+tasksArray = actualySortArray(tasksArray);
 createTimeline();
 createDays();
 
@@ -118,7 +118,7 @@ function getTasksSize(index) {
     tasksArray[index].width = tasksArray[index].length * 80;
     tasksArray[index].height = 1;
     var temp = 0;
-    for (i in tasksArray) {
+    for (i in tasksArray) {      
         if (tasksArray[i].parent_id == index)
             if (tasksArray[i].y + tasksArray[i].height > temp)
                 temp = tasksArray[i].y + tasksArray[i].height + 2;
@@ -126,6 +126,7 @@ function getTasksSize(index) {
     }
 
     tasksArray[index].height += temp;
+    
 }
 
 function claimingSpace(index) {
@@ -199,9 +200,9 @@ function sort(tasksArray) {
 
 function actualySortArray(arr){
 
-    for(i=1; i<arr.length+1; i++){
+    for(var i=1; i<arr.length+1; i++){
         min = i;
-        for(j=i+1; j<arr.length; j++){
+        for(var j=i+1; j<arr.length; j++){
             if (arr[j].startTime < arr[min].startTime){
                 min = j;
             }
@@ -212,6 +213,33 @@ function actualySortArray(arr){
             arr[i]   = temp
         }
     }
+        
+
+
+        oldId = []
+        for(i in arr){
+            oldId[i]=arr[i].id
+            arr[i].id=parseInt(i)
+        }
+                for(i in arr){
+            
+            arr[i].id=parseInt(arr[i].id)
+            arr[i].parent_id=parseInt(arr[i].parent_id)
+        }
+        
+        for(var i =1; i<arr.length; i++){
+            
+            for(j in oldId){
+                if(arr[i].parent_id==oldId[j]){
+                    console.log(arr[i].parent_id+" == "+oldId[j]+" is "+j)
+                    arr[i].parent_id=parseInt(j)
+                    break
+                
+            }
+            }
+        }
+        
+    console.log(arr)
     return(arr)
 }
 

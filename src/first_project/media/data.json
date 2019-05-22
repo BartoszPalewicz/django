@@ -93,7 +93,7 @@
 	{
 		"name": "Sortowanie quicksort",
 		"start_time": "2019-05-03",
-		"end_time": "2019-05-04",
+		"end_time": "2019-05-07",
 		"status": "new",
 		"parent_id": 10,
 		"id": 13,
@@ -111,7 +111,7 @@
 	{
 		"name": "Algorytmy sortujące",
 		"start_time": "2019-05-01",
-		"end_time": "2019-05-06",
+		"end_time": "2019-05-09",
 		"status": "pending",
 		"parent_id": null,
 		"id": 10,
