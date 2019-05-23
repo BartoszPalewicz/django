@@ -34,16 +34,16 @@ function createTimeline() {
 
     for (i in tasksArray) {
 
-        if (tasksArray[i].parent_id == "" || tasksArray[i].parent_id == null) {
-            //tasksArray[i].parent_id = 0;
+        if (isNaN(tasksArray[i].parent_id)){
             tasksArray[i].isMain = true;
             childSearch(i);
         }
     }
 
     for (i in tasksArray)
-        if (tasksArray[i].parent_id == 0) {
+        if (isNaN(tasksArray[i].parent_id)) {
             createDiv(i);
+            console.log("test")
         }
 }
 
@@ -103,8 +103,13 @@ function checkingForFreeSpace(index) {
     var condition = true;
     while (condition) {
         condition = false;
+        if (isNaN(tasksArray[index].parent_id))
+            var pid = 0;
+        else
+            var pid = tasksArray[index].parent_id
+
         for (var j = tasksArray[index].startTime; j < tasksArray[index].endTime; j++) {
-            if (positionArray[tasksArray[index].parent_id][y][j] != undefined) {
+            if (positionArray[pid][y][j] != undefined) {
                 condition = true;
                 y++;
                 break;
@@ -118,25 +123,30 @@ function getTasksSize(index) {
     tasksArray[index].width = tasksArray[index].length * 80;
     tasksArray[index].height = 1;
     var temp = 0;
-    for (i in tasksArray) {      
+    
+    for (i in tasksArray) {
         if (tasksArray[i].parent_id == index)
             if (tasksArray[i].y + tasksArray[i].height > temp)
                 temp = tasksArray[i].y + tasksArray[i].height + 2;
-                
+
     }
 
     tasksArray[index].height += temp;
-    
+
 }
 
 function claimingSpace(index) {
+    if (isNaN(tasksArray[index].parent_id))
+        var pid = 0;
+    else
+        var pid = tasksArray[index].parent_id
     for (var j = tasksArray[index].startTime; j < tasksArray[index].endTime; j++) {
         for (var k = tasksArray[index].y; k < tasksArray[index].height + tasksArray[index].y; k++)
-            if (positionArray[tasksArray[index].parent_id][k][j] != undefined) {
-                positionArray[tasksArray[index].parent_id][k][j] = false;
+            if (positionArray[pid][k][j] != undefined) {
+                positionArray[pid][k][j] = false;
             }
             else {
-                positionArray[tasksArray[index].parent_id][k][j] = tasksArray[index].name;
+                positionArray[pid][k][j] = tasksArray[index].name;
             }
     }
 }
@@ -148,7 +158,7 @@ function addTasksStyles(element, index) {
     }
     var border_color = colors[tasksArray[index].status] || "#f00";
     element.style.borderBottomColor = border_color;
-    if (tasksArray[index].parent_id == 0) {
+    if (isNaN(tasksArray[index].parent_id)) {
         element.style.left = ((tasksArray[index].startTime - 1) * width) + "px"
     }
     else {
@@ -165,7 +175,7 @@ function addDivContent(element, index) {
 
 function placingDiv(element, index) {
     var parentElementId = "task" + tasksArray[index].parent_id;
-    if (tasksArray[index].parent_id == 0)
+    if (isNaN(tasksArray[index].parent_id))
         parentElementId = "task"
     document.getElementById(parentElementId).appendChild(element);
 }
@@ -190,57 +200,63 @@ function createDiv(index) {
 function sort(tasksArray) {
 
     var tempArray = [];
+    j=1
     for (i in tasksArray) {
-        tempArray[tasksArray[i].id] = tasksArray[i]
-
+        tempArray[j] = tasksArray[i]
+        j++
     }
 
     return (tempArray);
 }
 
-function actualySortArray(arr){
+function actualySortArray(arr) {
 
-    for(var i=1; i<arr.length+1; i++){
+    for (var i = 1; i < arr.length + 1; i++) {
         min = i;
-        for(var j=i+1; j<arr.length; j++){
-            if (arr[j].startTime < arr[min].startTime){
+        for (var j = i + 1; j < arr.length; j++) {
+            if (arr[j].startTime < arr[min].startTime) {
                 min = j;
             }
         }
-        if (i != min){
+        if (i != min) {
             var temp = arr[min]
             arr[min] = arr[i]
-            arr[i]   = temp
+            arr[i] = temp
         }
     }
-        
 
 
-        oldId = []
-        for(i in arr){
-            oldId[i]=arr[i].id
-            arr[i].id=parseInt(i)
-        }
-                for(i in arr){
-            
-            arr[i].id=parseInt(arr[i].id)
-            arr[i].parent_id=parseInt(arr[i].parent_id)
-        }
-        
-        for(var i =1; i<arr.length; i++){
-            
-            for(j in oldId){
-                if(arr[i].parent_id==oldId[j]){
-                    console.log(arr[i].parent_id+" == "+oldId[j]+" is "+j)
-                    arr[i].parent_id=parseInt(j)
-                    break
-                
+    arr = idChange(arr)
+
+
+
+    return (arr)
+}
+
+function idChange(arr) {
+    oldId = []
+    for (i in arr) {
+        oldId[i] = arr[i].id
+        arr[i].id = parseInt(i)
+    }
+    for (i in arr) {
+
+        arr[i].id = parseInt(arr[i].id)
+        arr[i].parent_id = parseInt(arr[i].parent_id)
+    }
+
+    for (var i = 1; i < arr.length; i++) {
+
+        for (j in oldId) {
+            if (arr[i].parent_id == oldId[j]) {
+                console.log(arr[i].parent_id + " == " + oldId[j] + " is " + j)
+                arr[i].parent_id = parseInt(j)
+                break
+
             }
-            }
         }
-        
-    console.log(arr)
-    return(arr)
+    }
+    return (arr)
 }
 
 function getTasksLength() {

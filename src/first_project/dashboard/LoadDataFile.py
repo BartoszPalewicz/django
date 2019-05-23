@@ -4,99 +4,101 @@ import json
 import types
 import sqlite3
 from .models import Task
+from operator import itemgetter
 from django.contrib.auth.models import User
 
 
 
-def json_to_sql():
-    JSON_FILE = 'media/data.json'
-    traffic = json.load(open(JSON_FILE), encoding='utf-8')
-    print(traffic)
-    id_tab = list()
-    i = 0
-    Task.objects.all().delete()
-    while i<len(traffic):
-        old_id = int(traffic[i]["id"])
-        id_tab.append(old_id)
-        st = get_start_date(traffic[i])
-        et = get_end_date(traffic[i])
-        u = users(traffic[i])
+class importTask:
+    def __init__(self):
+        
+        file = 'media/data.json'
+        tasks = json.load(open(file, "r", encoding='utf-8'))
+        id_tab = {}
+        Task.objects.all().delete()
+        tasks = self._sort(tasks)
+        for i in tasks:
+            task = self._create_task(i)
+            task = self._parenties(i, task)
+            old_id = int(i["id"])
+            task.save()
+            id_tab[old_id]= task.id
+            task = self._calculate_parents(task, id_tab)
+            task.save()
+
+    @staticmethod
+    def format_date(d):
+        d = datetime.datetime.strptime(d, "%Y-%m-%d").date()
+        return d
+
+    def _create_task(self, i):
+        st = self.format_date(i["start_time"])
+        et = self.format_date(i["end_time"])
+        u = self._users(i)
         task = Task()
-        task.id = i+1
-        task.name = traffic[i]["name"]
+        task.name = i["name"]
         task.start_time = st
         task.end_time = et
-        task.status = traffic[i]["status"]
+        task.status = i["status"]
         task.assignee = u
-        task.save()
-        i += 1
-    parents(traffic, id_tab)
-    #print(id_tab[1000])
-def get_start_date(obj):
-    d = obj["start_time"]
-    d = datetime.datetime.strptime(d, "%Y-%m-%d").date()
-    return d
+        return(task)
+    
 
+    def _users(self, obj):
+        print("test")
+        username = obj["assignee"][0]
+        j = 0
+        char = ""
+        while char != " ":
+            char=obj["assignee"][j]
+            j+=1
+        l = len(obj["assignee"])
+        firstname = obj["assignee"][0:(j-1)]
+        lastname = obj["assignee"][j:l]
+        username += lastname
 
-def get_end_date(obj):
-    d = obj["end_time"]
-    d = datetime.datetime.strptime(d, "%Y-%m-%d").date()
-    return d
-
-
-def users(obj):
-    username = obj["assignee"][0]
-    j = 0
-    char = ""
-    while char != " ":
-        char=obj["assignee"][j]
-        j+=1
-    l = len(obj["assignee"])
-    firstname = obj["assignee"][0:(j-1)]
-    lastname = obj["assignee"][j:l]
-    username += lastname
-
-    if User.objects.filter(username=username).exists():
-        un = User.objects.get(username=username)
-    else:
-        user = User.objects.create_user(username=username)
-        user.first_name = firstname
-        user.last_name = lastname
-        user.save()
-        un = user
-    return un
-
-def parents(obj, id_tab):
-
-    i=1
-    for currentJSONobject in obj:
-        currentTask = Task.objects.get(id=i)
-        if currentJSONobject["parent_id"] != None:
-            if type(currentJSONobject["parent_id"]) == str:
-                if len(currentJSONobject["parent_id"])==0:
-                    currentTask.parent_id = 0
-                    currentTask.save()
-                else: 
-                    currentJSONobject["parent_id"] = int(currentJSONobject["parent_id"])
-                    j=0
-                    while j < 13:
-                        if currentJSONobject["parent_id"] == id_tab[j]:
-                            currentTask.parent_id = j+1
-                            currentTask.save()
-                        j += 1
-
-            else:
-                j=0
-                while j < 13:
-                    if currentJSONobject["parent_id"] == id_tab[j]:
-                        currentTask.parent_id = j+1
-                        currentTask.save()
-                    j += 1
-
+        if User.objects.filter(username=username).exists():
+            un = User.objects.get(username=username)
         else:
-            currentTask.parent_id = 0
-            currentTask.save()
+            user = User.objects.create_user(username=username)
+            user.first_name = firstname
+            user.last_name = lastname
+            user.save()
+            un = user
+        return un
 
-        i += 1
-    currentTask.save()
-        
+    def _parenties(self, i, task):
+        task.parent_id = i["parent_id"]
+        if i["parent_id"] == "":
+            i["parent_id"] = None
+        if i["parent_id"] == None:
+            task.parent_id =None
+        else:
+            task.parent_id = int(i["parent_id"])
+        return(task)
+    
+
+    def _calculate_parents(self, obj, id_tab):
+        if obj.parent_id:
+            print(obj.parent_id)
+            temp = obj.parent_id
+            obj.parent_id = id_tab[temp]
+        return (obj)
+
+    def _sort(self, arr):
+        for obj in arr:
+            obj["id"]=int(obj["id"])
+        i =0
+        while i < len(arr)-1:
+            min = i
+            j=(i+1)
+            while j < len(arr):
+                if arr[min]["id"]>arr[j]["id"]:
+                    min = j
+                j+=1
+            if min != i:
+                temp = arr[i]
+                arr[i] = arr[min]
+                arr[min] = temp
+            i+=1
+        return(arr)

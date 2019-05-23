@@ -11,6 +11,6 @@ class Task(models.Model):
     start_time = models.DateField()
     end_time = models.DateField()
     status = models.CharField(max_length=20)
-    parent_id = models.IntegerField(default=-1, blank=True, null=True);
+    parent_id = models.IntegerField(blank=True, null=True)
     assignee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default="xd")
     name = models.CharField(max_length=300)
