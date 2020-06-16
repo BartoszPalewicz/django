@@ -21,8 +21,8 @@ from django.conf.urls.static import static
 #from dashboard.views import *
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-    url(r'^dash', include('dashboard.urls'))
+    url(r'',  include('dashboard.urls')),
+    url(r'^admin/', admin.site.urls)
 
 
 ]
